@@ -88,7 +88,7 @@ def eng_to_rus(text):
 
 
 def sub(text, charaster, audio_duration):
-    global latest_duration
+    global latest_duration, subs
     player = SSAStyle(
     fontname="Rounded M Plus",
     fontsize=10,
@@ -108,21 +108,14 @@ def sub(text, charaster, audio_duration):
 
 
     if charaster == "player":
-        subs_player.append(pysubs2.SSAEvent(start=latest_duration, end=latest_duration + audio_duration, text=text, style=charaster))
+        subs.append(pysubs2.SSAEvent(start=latest_duration, end=latest_duration + audio_duration, text=text, style=charaster))
     if charaster == "mita":
-        subs_mita.append(pysubs2.SSAEvent(start=latest_duration, end=latest_duration + audio_duration, text=text, style=charaster))
+        subs.append(pysubs2.SSAEvent(start=latest_duration, end=latest_duration + audio_duration, text=text, style=charaster))
     latest_duration += audio_duration
 
 
 def add_sub():
     global subs
-    for i in range(min(len(subs_mita), len(subs_player))):
-        subs.append(subs_mita[i])
-        subs.append(subs_player[i])
-    if (len(subs_mita) > len(subs_player)):
-        subs.append(subs_mita[len(subs_mita) - 1])
-    elif (len(subs_mita) < len(subs_player)):
-        subs.append(subs_player[len(subs_player) - 1])
     subs.save(os.path.abspath("temp/sub.ass"))
     subprocess.run(["ffmpeg", "-i", "main_stream.mp4", "-vf", f"ass=sub.ass", "main_stream_subtitle.mp4"], cwd=f"{os.path.abspath("temp")}")
     main.stream_ready = True

@@ -35,7 +35,7 @@ def get_audio_from_api(charaster, text, n):
 def temp_sent_to_one_audio(charaster, n):
     print(charaster)
     temp_sent[f"{charaster}_{n}"] = sum(temp_sent[f"{charaster}_{n}"])
-    temp_sent[f"{charaster}_{n}"].export(os.path.abspath("audio/{n}_{charaster}.mp3"))
+    temp_sent[f"{charaster}_{n}"].export(os.path.abspath(f"audio/{n}_{charaster}.mp3"))
     temp_sent[f"{charaster}_{n}"] = []
 
 

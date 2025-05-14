@@ -1,40 +1,77 @@
-import pydub, os, main
-from pydub.playback import play
-
-audio_frame = []
+import pydub, os, glob, div, requests, io
+from collections import defaultdict
 
 
-def num_frame_conf():
-    n = 0
-    while True:
+temp_sent = defaultdict(list)
+
+def get_audio_from_api(charaster, text, n):
+    print(charaster)
+    pith = 8 if charaster == "mita" else -8
+    sentence = div.division(text=text)
+    for message in sentence:
+        print(message)
+
+        params = {
+            "text": message,
+            "person": "Player" if charaster == "player" else "CrazyMita",
+            "rate": "+8%",
+            "pith": pith
+        }
+        headers = {'Content-type': 'application/json'}
+
         try:
-            f = open(f"{os.getcwd()}\\{n}_mita.mp3")
-            n += 1
-            f.close()
-        except:
-            break
-    return n
+            response = requests.post(
+                    url="http://109.110.73.254:2020/api/v1/edge/get_edge",
+                    json=params,
+                    headers=headers 
+            )
+            response.raise_for_status()
+            temp_sent[f"{charaster}_{n}"].append(pydub.AudioSegment.from_file(io.BytesIO(response.content), format="mp3"))
+            div.sub(text=message, charaster=charaster, audio_duration=len(pydub.AudioSegment.from_file(io.BytesIO(response.content))))
+        except Exception as e:
+            print(e)
+            raise
+        
+def temp_sent_to_one_audio(charaster, n):
+    print(charaster)
+    temp_sent[f"{charaster}_{n}"] = sum(temp_sent[f"{charaster}_{n}"])
+    temp_sent[f"{charaster}_{n}"].export(os.path.abspath("audio/{n}_{charaster}.mp3"))
+    temp_sent[f"{charaster}_{n}"] = []
 
 
+def get_duration(audio):
+    return len(pydub.AudioSegment.from_mp3(audio)) // 1000
 
-def add_audio_frame():
-    global audio_frame
-    print("создание frame")
-    audio_frame.append(pydub.AudioSegment.silent(5000))
-    for i in range(num_frame_conf()):
-        x = pydub.AudioSegment.from_mp3(f"{os.getcwd()}\\{i}_mita.mp3") + (pydub.AudioSegment.silent())
-        audio_frame.append(x)
-        x = pydub.AudioSegment.from_mp3(f"{os.getcwd()}\\{i}_player.mp3") + pydub.AudioSegment.silent()
-        audio_frame.append(x)
-    for i in range(len(audio_frame)):
-        main.main_dict['audio'].append(audio_frame[i])
 
-def audio_main():
-    print("Старт аудио")
-    add_audio_frame()
-    for i in range(len(main.main_dict['audio'])):
-        print(len((main.main_dict['audio'])))
-        play(main.main_dict['audio'][i])
+def all_duration_audio():
+    duration = 0
+    audio_files = glob.glob(os.path.abspath("audio/*"))
+    print(len(glob.glob(os.path.abspath("audio/*"))))
+    for i in range(len(glob.glob(os.path.abspath("audio/*")))):
+        duration += get_duration(audio_files[i])
+    print(duration)
+
+
+def gluing_audio():
+    mita_files = glob.glob(os.path.abspath("audio/*_mita.mp3"))
+    mita_num_files = len(glob.glob(os.path.abspath("audio/*_mita.mp3")))
+
+    player_files = glob.glob(os.path.abspath("audio/*_player.mp3"))
+    player_num_files = len(glob.glob(os.path.abspath("audio/*_player.mp3")))
+    all_audio_files = []
+    print(max(mita_num_files, player_num_files))
+    for i in range(max(mita_num_files, player_num_files)):
+        all_audio_files.append(pydub.AudioSegment.from_mp3(mita_files[i]))
+        all_audio_files.append(pydub.AudioSegment.silent(500))
+        all_audio_files.append(pydub.AudioSegment.from_mp3(player_files[i]))
+    all_audio_files = sum(all_audio_files)
+    all_audio_files.export(os.path.abspath("temp/temp_audio.mp3"))
+    
+    
+    
+    #all_audio_files.export(f"{os.path.abspath("temp")}/out.mp3", format="mp3")
+    
+
 
 if __name__ == "__main__":
-    audio_main()
+    pass

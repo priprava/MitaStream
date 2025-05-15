@@ -1,7 +1,8 @@
 from openai import OpenAI, RateLimitError
 import audio,random, threading
+from itertools import chain
 
-client = OpenAI(api_key="KEY", base_url="https://api.deepseek.com")
+client = OpenAI(api_key="", base_url="https://api.deepseek.com")
 
 histori = [""]
 histori_player = []
@@ -9,6 +10,7 @@ histori_mita = []
 vid = []
 mod = "deepseek-chat"
 theme = []
+character_sequence = []
 duration_dialogue = 0
 
 def Mita():
@@ -120,7 +122,9 @@ The beginning of the topic should be without a smooth start like "you decided to
 We are discussing the topic: "{theme[0]}"
         """},
         {"role": "user", "content": f"{histori[-1]}"},
-      ], temperature=1.3, frequency_penalty=0.5, presence_penalty=0.3
+      ], frequency_penalty=0.5,  # Уменьшить повторы
+    presence_penalty=0.3,   # Добавить немного новых тем
+    max_tokens=200,
     )
     histori_mita.append(response.choices[0].message.content)
     histori.append(response.choices[0].message.content) 
@@ -139,7 +143,9 @@ Do not repeat yourself. Answer in Russian
 immediately enter the role without telling about it. Answer briefly and concisely - no more than 2-3 sentences. Sentence minimum 10 characters. Let's start discussing the topic: "{theme[0]}"
         """},
         {"role": "user", "content": histori[-1]},
-    ], temperature=1.3, frequency_penalty=0.5, presence_penalty=0.3
+    ], frequency_penalty=0.5,  # Уменьшить повторы
+    presence_penalty=0.3,   # Добавить немного новых тем
+    max_tokens=200,
     )
     histori_player.append(response.choices[0].message.content) 
     histori.append(response.choices[0].message.content) 
@@ -151,14 +157,6 @@ def get_duration_dialogue():
   print(duration_dialogue)
 
 
-def message_to_audio(histori, charaster):
-  n = 0
-  for message in histori:
-    audio.get_audio_from_api(charaster=charaster,n = n, text=str(message))
-    audio.temp_sent_to_one_audio(charaster, n=n)
-    print(n)
-    n+=1
-
 
 def Chat():
   while len(theme) == 0:
@@ -168,25 +166,33 @@ def Chat():
   n = 0
   
   while duration_dialogue > 0:
+
     if len(theme) != 0:
       Mita()
-
+      character_sequence.append("mita")
 
       player()
+      character_sequence.append("player")
       print(duration_dialogue)
       duration_dialogue -= 1
-  
-  print(len(histori_mita))
-  print(len(histori_player))
 
-  message_to_audio(histori_mita, "mita")
-  message_to_audio(histori_player, "player")
+  histori = list(chain.from_iterable(zip(histori_mita, histori_player)))
+
+  histori = list(zip(histori, character_sequence))
+  print(histori)
+
+  for message, charaster in histori:
+    audio.get_audio_from_api(charaster=charaster, text=str(message))
+    audio.temp_sent_to_one_audio(charaster=charaster)
 
   del theme[0]
     
 
 if __name__ == "__main__":
   Chat()
+
+
+
 
 
 

@@ -14,7 +14,7 @@ def check_subscription(user_id):
     
 tconv = lambda x: time.strftime("%H:%M:%S %d.%m.%Y", time.localtime(x))
 
-bot = telebot.TeleBot('Token')
+bot = telebot.TeleBot("Token")
 CHANNEL_ID = # Замените на реальный ID
 
 @bot.message_handler(commands=['start'])
@@ -23,7 +23,7 @@ def start(message):
         bot.send_message(message.chat.id, "Вы подписаны! Вот ваш контент...")
     else:
         markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("Подписаться", url=f"https://t.me/dapohkakayasilka"))
+        markup.add(types.InlineKeyboardButton("Подписаться", url=f"https://t.me/"ССЫЛКА"))
         markup.add(types.InlineKeyboardButton("Проверить подписку", callback_data="check_sub"))
         
         bot.send_message(
@@ -41,6 +41,7 @@ def start(message):
             return
         last_message_time[message.chat.id] = current_time
         aiChat.theme.append(message.text)
+        print(aiChat.theme)
         bot.reply_to(message, "Тема успешно добавлена")
 
     else:

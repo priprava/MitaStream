@@ -3,8 +3,12 @@ from collections import defaultdict
 
 
 temp_sent = defaultdict(list)
+n = defaultdict(list)
+n["mita"] = 0
+n["player"] = 0
 
-def get_audio_from_api(charaster, text, n):
+
+def get_audio_from_api(charaster, text):
     print(charaster)
     pith = 8 if charaster == "mita" else -8
     sentence = div.division(text=text)
@@ -26,17 +30,18 @@ def get_audio_from_api(charaster, text, n):
                     headers=headers 
             )
             response.raise_for_status()
-            temp_sent[f"{charaster}_{n}"].append(pydub.AudioSegment.from_file(io.BytesIO(response.content), format="mp3"))
+            temp_sent[f"{charaster}_{n[charaster]}"].append(pydub.AudioSegment.from_file(io.BytesIO(response.content), format="mp3"))
             div.sub(text=message, charaster=charaster, audio_duration=len(pydub.AudioSegment.from_file(io.BytesIO(response.content))))
         except Exception as e:
             print(e)
             raise
         
-def temp_sent_to_one_audio(charaster, n):
+def temp_sent_to_one_audio(charaster):
     print(charaster)
-    temp_sent[f"{charaster}_{n}"] = sum(temp_sent[f"{charaster}_{n}"])
-    temp_sent[f"{charaster}_{n}"].export(os.path.abspath(f"audio/{n}_{charaster}.mp3"))
-    temp_sent[f"{charaster}_{n}"] = []
+    temp_sent[f"{charaster}_{n[charaster]}"] = sum(temp_sent[f"{charaster}_{n[charaster]}"])
+    temp_sent[f"{charaster}_{n[charaster]}"].export(os.path.abspath(f"audio/{n[charaster]}_{charaster}.mp3"))
+    temp_sent[f"{charaster}_{n[charaster]}"] = []
+    n[charaster] += 1
 
 
 def get_duration(audio):

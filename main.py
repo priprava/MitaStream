@@ -58,7 +58,7 @@ def create_temp_video():
         for i in range(max(len(temp_vid_mita), len(temp_vid_player))):
             f.writelines(f"file \'{temp_vid_mita[i]}\'\n")
             f.writelines(f"file \'{temp_vid_player[i]}\'\n")
-        f.writelines(f"file \'{os.path.abspath("temp/input.txt")}\'")
+        f.writelines(f"file \'{os.path.abspath("video/end.mp4")}\'")
 
 def delete_temp():
     for file in glob.glob(os.path.abspath("temp/*")):
@@ -78,6 +78,7 @@ def create_stream():
     print(f"start create_stream, stream_ready = {create_ready}")
     while True:
         if create_ready:
+            start_time = time.time()
             threads = []
 
 
@@ -100,6 +101,8 @@ def create_stream():
             video.gluing_audio_and_video()
             div.add_sub()
             create_ready = False
+            end_time = time.time()
+            print(f"Время выполнения: {(end_time - start_time):.2f}")
 
 if __name__ == "__main__":
     threading.Thread(target=telegram_bot.start_bot).start()
